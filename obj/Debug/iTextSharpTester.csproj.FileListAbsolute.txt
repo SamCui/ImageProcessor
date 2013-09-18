@@ -1,0 +1,13 @@
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\iTextSharpTester.exe
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\iTextSharpTester.pdb
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\itextsharp.dll
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\PdfSharp.Charting.dll
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\PdfSharp.dll
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\PdfSharp.xml
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\PdfSharp.Charting.xml
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\de\PdfSharp.resources.dll
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\de\PdfSharp.Charting.resources.dll
+C:\CodeStore\Harvest\iTextSharpTester\obj\Debug\iTextSharpTester.exe
+C:\CodeStore\Harvest\iTextSharpTester\obj\Debug\iTextSharpTester.pdb
+C:\CodeStore\Harvest\iTextSharpTester\obj\Debug\iTextSharpTester.csprojResolveAssemblyReference.cache
+C:\CodeStore\Harvest\iTextSharpTester\bin\Debug\iTextSharpTester.exe.config
