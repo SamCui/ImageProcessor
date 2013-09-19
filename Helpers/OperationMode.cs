@@ -10,7 +10,9 @@ namespace ImageProcessor.Helpers
         public enum WhichOperation
         {
             GrayScaleConversion = 1,
-            PDFConversion = 2
+            TifToPDFConversion = 2,
+            PDFToTifConversion = 3, 
+            DpiConversion = 4
         }
 
         public OperationMode()

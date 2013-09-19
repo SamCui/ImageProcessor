@@ -71,77 +71,58 @@ namespace ImageProcessor.Helpers
 
         public void TestDotnet()
         {
-            var startTime = DateTime.Now;
-            var totalSourceSize = 0;
-            var totalTargetSize = 0;
+            DateTime startTime;
+            int totalSourceSize;
+            int totalTargetSize;
+            long totalMemoryUsed;
+            long startWorkingSet;
+            SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
 
-            long totalMemoryUsed = 0;
+            TestDotnet(ref totalSourceSize, ref totalTargetSize);
 
-            long startWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-
-            TestDotnetConvertToGrayScale(ref totalSourceSize, ref totalTargetSize);
-
-            var stopTime = DateTime.Now;
-            TimeSpan timeTaken = stopTime - startTime;
-
-            long endWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-            totalMemoryUsed = (endWorkingSet - startWorkingSet) / sizeDivisor;
-
+            TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
             GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
-
             WriteToExcel("Dotnet", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
         }
 
         public void TestLeadTools()
         {
-            var totalSourceSize = 0;
-            var totalTargetSize = 0;
-            long totalMemoryUsed = 0;
+            DateTime startTime;
+            int totalSourceSize;
+            int totalTargetSize;
+            long totalMemoryUsed;
+            long startWorkingSet;
+            SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
             
-            long startWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-
-            var startTime = DateTime.Now;
             leadToolsImageTransformer.PdfInitialPath = @"C:\CodeStore\LeadToolsLibrary\";
+            TestLeadtools(ref totalSourceSize, ref totalTargetSize);
 
-            TestLeadtoolsConvertToGraySacle(ref totalSourceSize, ref totalTargetSize);
-
-            var stopTime = DateTime.Now;
-            TimeSpan timeTaken = stopTime - startTime;
-
-            long endWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-            totalMemoryUsed = (endWorkingSet - startWorkingSet) / sizeDivisor;
-
-            GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
-           
+            TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
+            GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);           
             WriteToExcel("Leadtools", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
         }
 
         public void TestAtalasoft()
         {
-            var totalSourceSize = 0;
-            var totalTargetSize = 0;
-            long totalMemoryUsed = 0;
-
-            long startWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-
-            var startTime = DateTime.Now;
+            DateTime startTime;
+            int totalSourceSize;
+            int totalTargetSize;
+            long totalMemoryUsed;
+            long startWorkingSet;
+            SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
             
-            TestAtalasoftConvertToGrayScale(ref totalSourceSize, ref totalTargetSize);
 
-            var stopTime = DateTime.Now;
-            TimeSpan timeTaken = stopTime - startTime;
+            TestAtalasoft(ref totalSourceSize, ref totalTargetSize);
 
-            long endWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-            totalMemoryUsed = (endWorkingSet - startWorkingSet) / sizeDivisor;
 
+            TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
             GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
-
             WriteToExcel("Atalasfot", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
         }
         #endregion
 
         #region Dotnet private methods
-        private void TestDotnetConvertToGrayScale(ref int totalSourceSize, ref int totalTargetSize)
+        private void TestDotnet(ref int totalSourceSize, ref int totalTargetSize)
         {
             if (_operation == OperationMode.WhichOperation.GrayScaleConversion)
             {
@@ -179,55 +160,68 @@ namespace ImageProcessor.Helpers
                     var targetExt = targetFileInfo.GetFileExtension();
 
                     totalTargetSize += targetFileSize;
-                    FileInformation += "Target file: " + fileSaver.TargetFileName + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
+                    FileInformation += "Target file: " + destFile + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
                 }
             }
         }
         #endregion
      
         #region Leadtools private methods
-        private void TestLeadtoolsConvertToGraySacle(ref int totalSourceSize, ref int totalTargetSize)
+        private void TestLeadtools(ref int totalSourceSize, ref int totalTargetSize)
         {
-            if (_operation == OperationMode.WhichOperation.GrayScaleConversion)
+            FileInformation = string.Empty;
+            totalSourceSize = 0;
+            totalTargetSize = 0;
+
+            fileSaver.SourceFilePath = SourceFilePath;
+            fileSaver.TargetFilePath = TargetFilePath;
+
+            foreach (var file in fileSaver.FilesToProcess)
             {
-                FileInformation = string.Empty;
-                totalSourceSize = 0;
-                totalTargetSize = 0;
+                var fileInfo = new FileInformation(file);
+                var fileSize = fileInfo.GetFileSize();
+                var pageCount = fileInfo.GetPageCount();
+                var ext = fileInfo.GetFileExtension();
+                var fileName = Path.GetFileName(file);
 
-                fileSaver.SourceFilePath = SourceFilePath;
-                fileSaver.TargetFilePath = TargetFilePath;
+                totalSourceSize += fileSize;
 
-                foreach (var file in fileSaver.FilesToProcess)
+                FileInformation += "Source file: " + fileName + " has " + pageCount.ToString() + " pages and " + fileSize.ToString() + sizeUOM + Environment.NewLine;
+
+                //Conversion
+
+                var destFile = string.Empty;
+
+                if (_operation == OperationMode.WhichOperation.GrayScaleConversion)
                 {
-                    var fileInfo = new FileInformation(file);
-                    var fileSize = fileInfo.GetFileSize();
-                    var pageCount = fileInfo.GetPageCount();
-                    var ext = fileInfo.GetFileExtension();
-                    var fileName = Path.GetFileName(file);
-
-                    totalSourceSize += fileSize;
-
-                    FileInformation += "Source file: " + fileName + " has " + pageCount.ToString() + " pages and " + fileSize.ToString() + sizeUOM + Environment.NewLine;
-
-                    //Conversion
-                    var destFile = fileSaver.TargetFilePath + "LeadTools" + fileName;
+                    destFile = fileSaver.TargetFilePath + "LeadTools" + fileName;
                     leadToolsImageTransformer.CopyTiffImage(file, destFile, true);
-                    //leadToolsImageTransformer.ResizeTiffImage(file, destFile, true, ResizeScale.HundredPercent);
-
-                    var targetFileInfo = new FileInformation(destFile);
-                    var targetFileSize = targetFileInfo.GetFileSize();
-                    var targetPageCount = targetFileInfo.GetPageCount();
-                    var targetExt = targetFileInfo.GetFileExtension();
-
-                    totalTargetSize += targetFileSize;
-                    FileInformation += "Target file: LeadTools" + fileName + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
                 }
+                else if (_operation == OperationMode.WhichOperation.TifToPDFConversion)
+                {
+                    destFile = fileSaver.TargetFilePath + "LeadTools" + fileName+".pdf";
+                    leadToolsImageTransformer.ConvertTifToPdf(file, destFile);
+                }
+                else if (_operation == OperationMode.WhichOperation.DpiConversion)
+                {
+                    destFile = fileSaver.TargetFilePath + "LeadToolsDpi" + fileName;
+                    leadToolsImageTransformer.ConvertDpi(file, destFile);
+                }
+                //leadToolsImageTransformer.ResizeTiffImage(file, destFile, true, ResizeScale.HundredPercent);
+
+                var targetFileInfo = new FileInformation(destFile);
+                var targetFileSize = targetFileInfo.GetFileSize();
+                var targetPageCount = targetFileInfo.GetPageCount();
+                var targetExt = targetFileInfo.GetFileExtension();
+
+                totalTargetSize += targetFileSize;
+                FileInformation += "Target file: " + destFile + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
             }
         }          
         #endregion
 
         #region Atalasoft private methods
-        private void TestAtalasoftConvertToGrayScale(ref int totalSourceSize, ref int totalTargetSize)
+        private void TestAtalasoft(ref int totalSourceSize, ref int totalTargetSize)
         {
             if (_operation == OperationMode.WhichOperation.GrayScaleConversion)
             {
@@ -261,11 +255,33 @@ namespace ImageProcessor.Helpers
                     var targetExt = targetFileInfo.GetFileExtension();
 
                     totalTargetSize += targetFileSize;
-                    FileInformation += "Target file: Atalasoft" + fileName + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
+                    FileInformation += "Target file: " + destFile + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
                 }
             }
         } 
         #endregion
+
+        #region general private help methods
+        private TimeSpan GetStats(DateTime startTime, ref long totalMemoryUsed, long startWorkingSet)
+        {
+            var stopTime = DateTime.Now;
+            TimeSpan timeTaken = stopTime - startTime;
+
+            long endWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+            totalMemoryUsed = (endWorkingSet - startWorkingSet) / sizeDivisor;
+            return timeTaken;
+        }
+
+        private static void SetupStatsCollection(out DateTime startTime, out int totalSourceSize, out int totalTargetSize, out long totalMemoryUsed, out long startWorkingSet)
+        {
+            startTime = DateTime.Now;
+            totalSourceSize = 0;
+            totalTargetSize = 0;
+
+            totalMemoryUsed = 0;
+
+            startWorkingSet = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+        }
 
         private void WriteToExcel(string library, string sourceSize, string targetSize, string reductionAmount, string totalMemoryUsed, string timeTaken, string operation)
         {
@@ -297,7 +313,8 @@ namespace ImageProcessor.Helpers
             FileSummary += "Reduced file size from  " + totalSourceSize.ToString() + " to " + totalTargetSize.ToString() + sizeUOM + Environment.NewLine;
             FileSummary += "Reduction of  " + (totalSourceSize - totalTargetSize).ToString() + sizeUOM + Environment.NewLine;
             FileSummary += "Total memory usage: " + totalMemoryused.ToString() + sizeUOM + Environment.NewLine;
-        } 
+        }
+        #endregion
 
         #region not used
 

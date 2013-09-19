@@ -250,71 +250,74 @@ namespace ImageProcessor
         {
             ShowTextAndIcon();
 
-            var operation = GetOperationMode();
-         
-            var testHelper = new TestHelper(operation);
-            testHelper.SourceFilePath = vm.SourceFilePath;
-            testHelper.TargetFilePath = vm.TargetFilePath;
+            var testHelper = SetupTestHelper();
+
             testHelper.TestLeadTools();
 
             HideTextAndIcon();
 
-            txtResults.Text = testHelper.FileInformation;
-            txtSummary.Text = testHelper.FileSummary;
+            DisplayResults(testHelper);
         }
 
         private void btnDotnet_Click(object sender, EventArgs e)
         {
             ShowTextAndIcon();
 
-            var operation = GetOperationMode();
-            var testHelper = new TestHelper(operation);
-            testHelper.SourceFilePath = vm.SourceFilePath;
-            testHelper.TargetFilePath = vm.TargetFilePath;
+            var testHelper = SetupTestHelper();
+
             testHelper.TestDotnet();
 
             HideTextAndIcon();
 
-            txtResults.Text = testHelper.FileInformation;
-            txtSummary.Text = testHelper.FileSummary;
+            DisplayResults(testHelper);
         }
 
 
         private void btnAtalasoft_Click(object sender, EventArgs e)
         {
             ShowTextAndIcon();
- 
-            var operation = GetOperationMode();
-            var testHelper = new TestHelper(operation);
-            testHelper.SourceFilePath = vm.SourceFilePath;
-            testHelper.TargetFilePath = vm.TargetFilePath;
+
+            var testHelper = SetupTestHelper();
+
             testHelper.TestAtalasoft();
 
             HideTextAndIcon();
 
-            txtResults.Text = testHelper.FileInformation;
-            txtSummary.Text = testHelper.FileSummary;
+            DisplayResults(testHelper);
         }
 
+       
         private void btnITextSharp_Click(object sender, EventArgs e)
         {
             ShowTextAndIcon();
-        
-            var operation = GetOperationMode();
-            var testHelper = new TestHelper(operation);
-            testHelper.SourceFilePath = vm.SourceFilePath;
-            testHelper.TargetFilePath = vm.TargetFilePath;
+
+            var testHelper = SetupTestHelper();
+
             testHelper.TestITextSharp();
 
             HideTextAndIcon();
 
-            txtResults.Text = testHelper.FileInformation;
-            txtSummary.Text = testHelper.FileSummary;
+            DisplayResults(testHelper);
         }
 
 
 
         #region private methods
+        private TestHelper SetupTestHelper()
+        {
+            var operation = GetOperationMode();
+            var testHelper = new TestHelper(operation);
+            testHelper.SourceFilePath = vm.SourceFilePath;
+            testHelper.TargetFilePath = vm.TargetFilePath;
+            return testHelper;
+        }
+
+        private void DisplayResults(TestHelper testHelper)
+        {
+            txtResults.Text = testHelper.FileInformation;
+            txtSummary.Text = testHelper.FileSummary;
+        }
+
         private OperationMode.WhichOperation GetOperationMode()
         {
             var selectedItem = cbOperationMode.SelectedItem;

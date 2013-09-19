@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ImageProcessor.Helpers
 {
@@ -31,8 +32,24 @@ namespace ImageProcessor.Helpers
 
         public int GetPageCount()
         {
-            Bitmap bm = (Bitmap)Image.FromFile(_file);
-            var pageCount = bm.GetFrameCount(FrameDimension.Page);
+            int pageCount = 0;
+            string ext = GetFileExtension();
+
+            if (ext == ".tif")
+            {
+                Bitmap bm = (Bitmap)Image.FromFile(_file);
+                pageCount = bm.GetFrameCount(FrameDimension.Page);
+            }
+            else if (ext == ".pdf")
+            {
+                using (StreamReader sr = new StreamReader(File.OpenRead(_file)))
+                {
+                    Regex regex = new Regex(@"/Type\s*/Page[^s]");
+                    MatchCollection matches = regex.Matches(sr.ReadToEnd());
+
+                    pageCount = matches.Count;
+                }
+            }
             return pageCount;
         }
 
