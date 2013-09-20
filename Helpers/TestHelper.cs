@@ -8,7 +8,8 @@ using System.Text;
 using ImageProcessor.Helpers;
 using ImageProcessor.Interfaces;
 using Ninject;
-using Excel=Microsoft.Office.Interop.Excel;
+using Ninject.Parameters;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace ImageProcessor.Helpers
 {
@@ -16,12 +17,22 @@ namespace ImageProcessor.Helpers
     {
         #region private fields
         StandardKernel kernel = null;
-        IITextSharpImageTransformer iTextSharpImageTransformer = null;
+        
         IFileSaver fileSaver = null;
         IFileGetter fileGetter = null;
-        IDotnetImageTransformer dotNetImageTransformer = null;
-        ILeadToolsImageTransformer leadToolsImageTransformer = null;
-        IAtalasImageTransformer atalasImageTransformer = null;
+     
+        IGrayscaleTransformer atalasoftGrayscaleTransformer = null;
+        IGrayscaleTransformer dotNetGrayscaleTransformer = null;
+        IGrayscaleTransformer leadToolsGrayscaleTransformer = null;
+
+        ITifPdfTransformer leadToolsTifPdfTransformer = null;
+
+        IDpiTransformer leadToolsDpiTransformer = null;
+
+        //IITextSharpImageTransformer iTextSharpImageTransformer = null;
+        //IDotnetImageTransformer dotNetImageTransformer = null;
+        //ILeadToolsImageTransformer leadToolsImageTransformer = null;
+
         string sizeUOM = " megabytes";
         int sizeDivisor = 1048576;
 
@@ -36,13 +47,21 @@ namespace ImageProcessor.Helpers
         private void InitializeTestHelper(OperationMode.WhichOperation operation)
         {
             kernel = new StandardKernel(new RunnerModule());
-            iTextSharpImageTransformer = kernel.Get<IITextSharpImageTransformer>();
-            fileSaver = kernel.Get<IFileSaver>();
-            fileGetter = kernel.Get<IFileGetter>();
-            dotNetImageTransformer = kernel.Get<IDotnetImageTransformer>();
-            leadToolsImageTransformer = kernel.Get<ILeadToolsImageTransformer>();
-            atalasImageTransformer = kernel.Get<IAtalasImageTransformer>();
+            
+            fileSaver = kernel.Get<FileSaver>();
+            fileGetter = kernel.Get<FileGetter>();
+          
+            atalasoftGrayscaleTransformer = kernel.Get<AtalasoftGrayscaleTransformer>();
+            dotNetGrayscaleTransformer = kernel.Get<DotnetGrayscaleTransformer>();
+            leadToolsGrayscaleTransformer = kernel.Get<LeadtoolsGrayscaleTransformer>();
 
+            leadToolsTifPdfTransformer = kernel.Get<ITifPdfTransformer>();
+
+            leadToolsDpiTransformer = kernel.Get<LeadtoolsDpiTransformer>();
+
+            //dotNetImageTransformer = kernel.Get<DotnetImageTransformer>();
+            //leadToolsImageTransformer = kernel.Get<ILeadToolsImageTransformer>();
+            
             _operation = operation;
         }
 
@@ -58,14 +77,13 @@ namespace ImageProcessor.Helpers
         #region public test methods
         public void TestITextSharp()
         {
-            //var fileSaver = new FileSaver();
             fileSaver.SourceFilePath = SourceFilePath;
             fileSaver.TargetFilePath = TargetFilePath;
 
             foreach (var file in fileSaver.FilesToProcess)
             {
                 Bitmap bm = (Bitmap)Image.FromFile(file);
-                iTextSharpImageTransformer.SaveEachImageAsOwnPdf(file);
+                //iTextSharpImageTransformer.SaveEachImageAsOwnPdf(file);
             }
         }
 
@@ -94,7 +112,7 @@ namespace ImageProcessor.Helpers
             long startWorkingSet;
             SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
             
-            leadToolsImageTransformer.PdfInitialPath = @"C:\CodeStore\LeadToolsLibrary\";
+            //leadToolsImageTransformer.PdfInitialPath = @"C:\CodeStore\LeadToolsLibrary\";
             TestLeadtools(ref totalSourceSize, ref totalTargetSize);
 
             TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
@@ -111,9 +129,7 @@ namespace ImageProcessor.Helpers
             long startWorkingSet;
             SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
             
-
             TestAtalasoft(ref totalSourceSize, ref totalTargetSize);
-
 
             TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
             GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
@@ -145,16 +161,10 @@ namespace ImageProcessor.Helpers
                     FileInformation += "Source file:  " + fileName + " has " + pageCount.ToString() + " pages and " + fileSize.ToString() + sizeUOM + Environment.NewLine;
 
                     //Conversion
-                    Bitmap bm = (Bitmap)Image.FromFile(file);
-
                     var destFile = fileSaver.TargetFilePath + "Dotnet" + fileName;
-                    List<Bitmap> bitMaps = dotNetImageTransformer.ConvertToGrayScale(bm, destFile, ResizeScale.HundredPercent);
-
-                    fileSaver.TargetFileName = "Dotnet"+fileName;
-                    fileSaver.SaveImages(bitMaps);
-
-
-                    var targetFileInfo = new FileInformation(fileSaver.TargetFilePath + fileSaver.TargetFileName);
+                    dotNetGrayscaleTransformer.ConvertToGrayScale(file, destFile);
+                    
+                    var targetFileInfo = new FileInformation(destFile);
                     var targetFileSize = targetFileInfo.GetFileSize();
                     var targetPageCount = targetFileInfo.GetPageCount();
                     var targetExt = targetFileInfo.GetFileExtension();
@@ -195,19 +205,23 @@ namespace ImageProcessor.Helpers
                 if (_operation == OperationMode.WhichOperation.GrayScaleConversion)
                 {
                     destFile = fileSaver.TargetFilePath + "LeadTools" + fileName;
-                    leadToolsImageTransformer.CopyTiffImage(file, destFile, true);
+                    leadToolsGrayscaleTransformer.ConvertToGrayScale(file, destFile);
                 }
                 else if (_operation == OperationMode.WhichOperation.TifToPDFConversion)
                 {
-                    destFile = fileSaver.TargetFilePath + "LeadTools" + fileName+".pdf";
-                    leadToolsImageTransformer.ConvertTifToPdf(file, destFile);
+                    destFile = fileSaver.TargetFilePath + "LeadTools" + fileName+".pdf";                   
+                    leadToolsTifPdfTransformer.ConvertTifToPdf(file, destFile);
+                }
+                else if (_operation == OperationMode.WhichOperation.PDFToTifConversion)
+                {
+                    destFile = fileSaver.TargetFilePath + "LeadTools" + fileName + ".tif";
+                    leadToolsTifPdfTransformer.ConvertPdfToTif(file, destFile);
                 }
                 else if (_operation == OperationMode.WhichOperation.DpiConversion)
                 {
                     destFile = fileSaver.TargetFilePath + "LeadToolsDpi" + fileName;
-                    leadToolsImageTransformer.ConvertDpi(file, destFile);
+                    leadToolsDpiTransformer.ConvertDpi(file, destFile);
                 }
-                //leadToolsImageTransformer.ResizeTiffImage(file, destFile, true, ResizeScale.HundredPercent);
 
                 var targetFileInfo = new FileInformation(destFile);
                 var targetFileSize = targetFileInfo.GetFileSize();
@@ -246,8 +260,7 @@ namespace ImageProcessor.Helpers
 
                     //Conversion
                     var destFile = fileSaver.TargetFilePath + "Atalasoft" + fileName;
-                    //leadToolsImageTransformer.CopyTiffImage(file, destFile, true);
-                    atalasImageTransformer.ConvertToGrayScale(file, destFile);
+                    atalasoftGrayscaleTransformer.ConvertToGrayScale(file, destFile);
 
                     var targetFileInfo = new FileInformation(destFile);
                     var targetFileSize = targetFileInfo.GetFileSize();

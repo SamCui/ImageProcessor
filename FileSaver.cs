@@ -47,6 +47,7 @@ namespace ImageProcessor
                     pages = bitMap;
 
                     pages.Save(TargetFilePath+TargetFileName, info, ep);
+                    //pages.Save(destFile, info, ep);
                 }
                 else
                 {
@@ -65,7 +66,7 @@ namespace ImageProcessor
         }
 
         //this function takes an array of bitmaps and process each
-        public void SaveImages(List<Bitmap> bitMaps)
+        public void SaveImages(List<Bitmap> bitMaps, string destFile)
         {
             //Bitmap bitMap = (Bitmap)Image.FromFile(SourceFile);
 
@@ -90,7 +91,8 @@ namespace ImageProcessor
 
                     pages = bitMaps[i];
 
-                    pages.Save(TargetFilePath + TargetFileName, info, ep);
+                    pages.Save(destFile, info, ep);
+                    //pages.Save(TargetFilePath + TargetFileName, info, ep);
                 }
                 else
                 {

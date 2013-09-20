@@ -156,25 +156,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AtalasImageTransformer.cs" />
+    <Compile Include="AtalasoftGrayscaleTransformer.cs" />
+    <Compile Include="DotnetGrayscaleTransformer.cs" />
     <Compile Include="Helpers\FileInformation.cs" />
     <Compile Include="Helpers\OperationMode.cs" />
     <Compile Include="Helpers\ResizeScale.cs" />
-    <Compile Include="Interfaces\IAtalasImageTransformer.cs" />
+    <Compile Include="Interfaces\IDpiTransformer.cs" />
     <Compile Include="Interfaces\IFileGetter.cs" />
     <Compile Include="Interfaces\IFileSaver.cs" />
-    <Compile Include="Interfaces\IDotnetImageTransformer.cs" />
-    <Compile Include="Interfaces\ILeadToolsImageTransformer.cs" />
-    <Compile Include="Interfaces\IITextSharpImageTransformer.cs" />
-    <Compile Include="LeadToolsImageTransformer.cs" />
+    <Compile Include="Interfaces\IGrayscaleTransformer.cs" />
+    <Compile Include="Old\IITextSharpImageTransformer.cs" />
+    <Compile Include="Interfaces\ITifPdfTransformer.cs" />
+    <Compile Include="LeadtoolsDpiTransformer.cs" />
+    <Compile Include="LeadtoolsGrayscaleTransformer.cs" />
+    <Compile Include="Old\LeadToolsImageTransformer.cs" />
     <Compile Include="Helpers\MainFormViewModel.cs" />
+    <Compile Include="LeadtoolsTifPdfTransformer.cs" />
     <Compile Include="Old\DotnetImageProcessor.cs" />
     <Compile Include="FileGetter.cs" />
     <Compile Include="FileSaver.cs" />
     <Compile Include="Old\IImageProcessor.cs" />
     <Compile Include="Old\ImageConverter.cs" />
-    <Compile Include="DotnetImageTransformer.cs" />
-    <Compile Include="ITextSharpImageTransformer.cs" />
+    <Compile Include="Old\DotnetImageTransformer.cs" />
+    <Compile Include="Old\ITextSharpImageTransformer.cs" />
     <Compile Include="Old\PDFSharpConverter.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

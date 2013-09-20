@@ -6,14 +6,17 @@ using System.Text;
 
 namespace ImageProcessor.Interfaces
 {
-    public interface IFileSaver
+    public interface IITextSharpImageTransformer
     {
+        string SourceFileName { get; set; }
         string SourceFilePath { get; set; }
         string TargetFilePath { get; set; }
         string TargetFileName { get; set; }
         string[] FilesToProcess { get; }
 
-        void SaveImages(Bitmap bitMap);
-        void SaveImages(List<Bitmap> bitMaps, string destFile);
+        void CombineMultipleImagesInOnePdf();
+        void SaveEachImageAsOwnPdf(string fileName);
+        void SaveAsPDFs();
+        void SaveAsPDF();
     }
 }
