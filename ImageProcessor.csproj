@@ -133,6 +133,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\CodeStore\LeadToolsLibrary\Leadtools.Workflow.Ocr.dll</HintPath>
     </Reference>
+    <Reference Include="Magick.NET-x64">
+      <HintPath>packages\Magick.NET-Q16-x64.6.8.6.801\lib\net40-client\Magick.NET-x64.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -159,8 +162,10 @@
     <Compile Include="AtalasoftGrayscaleTransformer.cs" />
     <Compile Include="DotnetGrayscaleTransformer.cs" />
     <Compile Include="Helpers\FileInformation.cs" />
+    <Compile Include="Helpers\LibraryInUse.cs" />
     <Compile Include="Helpers\OperationMode.cs" />
     <Compile Include="Helpers\ResizeScale.cs" />
+    <Compile Include="ImageMagickGrayscaleTransformer.cs" />
     <Compile Include="Interfaces\IDpiTransformer.cs" />
     <Compile Include="Interfaces\IFileGetter.cs" />
     <Compile Include="Interfaces\IFileSaver.cs" />

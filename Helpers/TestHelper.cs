@@ -24,6 +24,7 @@ namespace ImageProcessor.Helpers
         IGrayscaleTransformer atalasoftGrayscaleTransformer = null;
         IGrayscaleTransformer dotNetGrayscaleTransformer = null;
         IGrayscaleTransformer leadToolsGrayscaleTransformer = null;
+        IGrayscaleTransformer imageMagickGrayscaleTransformer = null;
 
         ITifPdfTransformer leadToolsTifPdfTransformer = null;
 
@@ -54,6 +55,7 @@ namespace ImageProcessor.Helpers
             atalasoftGrayscaleTransformer = kernel.Get<AtalasoftGrayscaleTransformer>();
             dotNetGrayscaleTransformer = kernel.Get<DotnetGrayscaleTransformer>();
             leadToolsGrayscaleTransformer = kernel.Get<LeadtoolsGrayscaleTransformer>();
+            imageMagickGrayscaleTransformer = kernel.Get<ImageMagickGrayscaleTransformer>();
 
             leadToolsTifPdfTransformer = kernel.Get<ITifPdfTransformer>();
 
@@ -87,7 +89,7 @@ namespace ImageProcessor.Helpers
             }
         }
 
-        public void TestDotnet()
+        public void StartTest(LibraryInUse.WhichLibrary library)
         {
             DateTime startTime;
             int totalSourceSize;
@@ -96,45 +98,28 @@ namespace ImageProcessor.Helpers
             long startWorkingSet;
             SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
 
-            TestDotnet(ref totalSourceSize, ref totalTargetSize);
+            if (library == LibraryInUse.WhichLibrary.Dotnet)
+            {
+                TestDotnet(ref totalSourceSize, ref totalTargetSize);
+            }
+            else if (library == LibraryInUse.WhichLibrary.Leadtools)
+            {
+                TestLeadtools(ref totalSourceSize, ref totalTargetSize);
+            }
+            else if (library == LibraryInUse.WhichLibrary.Atalasoft)
+            {
+                TestAtalasoft(ref totalSourceSize, ref totalTargetSize);
+            }
+            else if (library == LibraryInUse.WhichLibrary.ImageMagick)
+            {
+                TestImageMagick(ref totalSourceSize, ref totalTargetSize);
+            }
 
             TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
             GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
-            WriteToExcel("Dotnet", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
+            WriteToExcel(library.ToString(), totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
         }
-
-        public void TestLeadTools()
-        {
-            DateTime startTime;
-            int totalSourceSize;
-            int totalTargetSize;
-            long totalMemoryUsed;
-            long startWorkingSet;
-            SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
-            
-            //leadToolsImageTransformer.PdfInitialPath = @"C:\CodeStore\LeadToolsLibrary\";
-            TestLeadtools(ref totalSourceSize, ref totalTargetSize);
-
-            TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
-            GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);           
-            WriteToExcel("Leadtools", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
-        }
-
-        public void TestAtalasoft()
-        {
-            DateTime startTime;
-            int totalSourceSize;
-            int totalTargetSize;
-            long totalMemoryUsed;
-            long startWorkingSet;
-            SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
-            
-            TestAtalasoft(ref totalSourceSize, ref totalTargetSize);
-
-            TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
-            GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
-            WriteToExcel("Atalasfot", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
-        }
+       
         #endregion
 
         #region Dotnet private methods
@@ -274,6 +259,45 @@ namespace ImageProcessor.Helpers
         } 
         #endregion
 
+        #region ImageMagick private methods
+        private void TestImageMagick(ref int totalSourceSize, ref int totalTargetSize)
+        {
+            if (_operation == OperationMode.WhichOperation.GrayScaleConversion)
+            {
+                FileInformation = string.Empty;
+                totalSourceSize = 0;
+                totalTargetSize = 0;
+
+                fileSaver.SourceFilePath = SourceFilePath;
+                fileSaver.TargetFilePath = TargetFilePath;
+
+                foreach (var file in fileSaver.FilesToProcess)
+                {
+                    var fileInfo = new FileInformation(file);
+                    var fileSize = fileInfo.GetFileSize();
+                    var pageCount = fileInfo.GetPageCount();
+                    var ext = fileInfo.GetFileExtension();
+                    var fileName = Path.GetFileName(file);
+
+                    totalSourceSize += fileSize;
+                    FileInformation += "Source file:  " + fileName + " has " + pageCount.ToString() + " pages and " + fileSize.ToString() + sizeUOM + Environment.NewLine;
+
+                    //Conversion
+                    var destFile = fileSaver.TargetFilePath + "ImageMagick" + fileName;
+                    imageMagickGrayscaleTransformer.ConvertToGrayScale(file, destFile);
+
+                    var targetFileInfo = new FileInformation(destFile);
+                    var targetFileSize = targetFileInfo.GetFileSize();
+                    var targetPageCount = targetFileInfo.GetPageCount();
+                    var targetExt = targetFileInfo.GetFileExtension();
+
+                    totalTargetSize += targetFileSize;
+                    FileInformation += "Target file: " + destFile + " has " + targetPageCount.ToString() + " pages and " + targetFileSize.ToString() + sizeUOM + Environment.NewLine;
+                }
+            }
+        }
+        #endregion
+
         #region general private help methods
         private TimeSpan GetStats(DateTime startTime, ref long totalMemoryUsed, long startWorkingSet)
         {
@@ -389,6 +413,73 @@ namespace ImageProcessor.Helpers
                 Console.WriteLine(file);
             }
         }
+        #endregion
+
+        #region Obsolete
+        //public void TestDotnet()
+        //{
+        //    DateTime startTime;
+        //    int totalSourceSize;
+        //    int totalTargetSize;
+        //    long totalMemoryUsed;
+        //    long startWorkingSet;
+        //    SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
+
+        //    TestDotnet(ref totalSourceSize, ref totalTargetSize);
+
+        //    TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
+        //    GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
+        //    WriteToExcel("Dotnet", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
+        //}
+
+        //public void TestImageMagick()
+        //{
+        //    DateTime startTime;
+        //    int totalSourceSize;
+        //    int totalTargetSize;
+        //    long totalMemoryUsed;
+        //    long startWorkingSet;
+        //    SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
+
+        //    TestImageMagick(ref totalSourceSize, ref totalTargetSize);
+
+        //    TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
+        //    GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
+        //    WriteToExcel("Dotnet", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
+        //}
+
+        //public void TestLeadTools()
+        //{
+        //    DateTime startTime;
+        //    int totalSourceSize;
+        //    int totalTargetSize;
+        //    long totalMemoryUsed;
+        //    long startWorkingSet;
+        //    SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
+
+        //    //leadToolsImageTransformer.PdfInitialPath = @"C:\CodeStore\LeadToolsLibrary\";
+        //    TestLeadtools(ref totalSourceSize, ref totalTargetSize);
+
+        //    TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
+        //    GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
+        //    WriteToExcel("Leadtools", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
+        //}
+
+        //public void TestAtalasoft()
+        //{
+        //    DateTime startTime;
+        //    int totalSourceSize;
+        //    int totalTargetSize;
+        //    long totalMemoryUsed;
+        //    long startWorkingSet;
+        //    SetupStatsCollection(out startTime, out totalSourceSize, out totalTargetSize, out totalMemoryUsed, out startWorkingSet);
+
+        //    TestAtalasoft(ref totalSourceSize, ref totalTargetSize);
+
+        //    TimeSpan timeTaken = GetStats(startTime, ref totalMemoryUsed, startWorkingSet);
+        //    GetSummary(totalSourceSize, totalTargetSize, totalMemoryUsed, timeTaken);
+        //    WriteToExcel("Atalasfot", totalSourceSize.ToString(), totalTargetSize.ToString(), (totalSourceSize - totalTargetSize).ToString(), totalMemoryUsed.ToString(), timeTaken.TotalSeconds.ToString(), _operation.ToString());
+        //}
         #endregion
     }
 }

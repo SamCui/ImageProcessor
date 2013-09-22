@@ -65,3 +65,5 @@ C:\TestApps\ImageProcessor\obj\Debug\ImageProcessor.Properties.Resources.resourc
 C:\TestApps\ImageProcessor\bin\Debug\Resources\processing.gif
 C:\TestApps\ImageProcessor\bin\Debug\Resources\blank.jpg
 C:\TestApps\ImageProcessor\bin\Debug\Resources\processingBlue.gif
+C:\TestApps\ImageProcessor\bin\Debug\Magick.NET-x64.dll
+C:\TestApps\ImageProcessor\bin\Debug\Magick.NET-x64.xml

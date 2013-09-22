@@ -19,6 +19,7 @@ namespace ImageProcessor
             Bind<IGrayscaleTransformer>().To<AtalasoftGrayscaleTransformer>();
             Bind<IGrayscaleTransformer>().To<DotnetGrayscaleTransformer>();
             Bind<IGrayscaleTransformer>().To<LeadtoolsGrayscaleTransformer>();
+            Bind<IGrayscaleTransformer>().To<ImageMagickGrayscaleTransformer>();
 
             Bind<ITifPdfTransformer>().To<LeadtoolsTifPdfTransformer>().WithConstructorArgument("pdfInitialPath", pdfInitialPath);
 

@@ -32,6 +32,7 @@ namespace ImageProcessor
         private Label lblTargetFilePath;
         private Button btnAtalasoft;
         private Label lblProcessing;
+        private Button btnImageMagick;
         private ComboBox cbOperationMode;
     
         MainForm()
@@ -67,6 +68,7 @@ namespace ImageProcessor
             this.lblTargetFilePath = new System.Windows.Forms.Label();
             this.btnAtalasoft = new System.Windows.Forms.Button();
             this.lblProcessing = new System.Windows.Forms.Label();
+            this.btnImageMagick = new System.Windows.Forms.Button();
             this.gbResults.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -86,7 +88,7 @@ namespace ImageProcessor
             this.btnLeadtools.TabIndex = 1;
             this.btnLeadtools.Text = "Leadtools";
             this.btnLeadtools.UseVisualStyleBackColor = true;
-            this.btnLeadtools.Click += new System.EventHandler(this.btnLeadtools_Click);
+            this.btnLeadtools.Click += new System.EventHandler(this.Button_Click);
             // 
             // btnDotnet
             // 
@@ -96,7 +98,7 @@ namespace ImageProcessor
             this.btnDotnet.TabIndex = 2;
             this.btnDotnet.Text = ". Net";
             this.btnDotnet.UseVisualStyleBackColor = true;
-            this.btnDotnet.Click += new System.EventHandler(this.btnDotnet_Click);
+            this.btnDotnet.Click += new System.EventHandler(this.Button_Click);
             // 
             // btnITextSharp
             // 
@@ -106,7 +108,7 @@ namespace ImageProcessor
             this.btnITextSharp.TabIndex = 3;
             this.btnITextSharp.Text = "ITextSharp";
             this.btnITextSharp.UseVisualStyleBackColor = true;
-            this.btnITextSharp.Click += new System.EventHandler(this.btnITextSharp_Click);
+            this.btnITextSharp.Click += new System.EventHandler(this.Button_Click);
             // 
             // label1
             // 
@@ -197,7 +199,7 @@ namespace ImageProcessor
             this.btnAtalasoft.TabIndex = 15;
             this.btnAtalasoft.Text = "Atalasoft";
             this.btnAtalasoft.UseVisualStyleBackColor = true;
-            this.btnAtalasoft.Click += new System.EventHandler(this.btnAtalasoft_Click);
+            this.btnAtalasoft.Click += new System.EventHandler(this.Button_Click);
             // 
             // lblProcessing
             // 
@@ -210,9 +212,20 @@ namespace ImageProcessor
             this.lblProcessing.TabIndex = 16;
             this.lblProcessing.Text = "Processing...";
             // 
+            // btnImageMagick
+            // 
+            this.btnImageMagick.Location = new System.Drawing.Point(263, 167);
+            this.btnImageMagick.Name = "btnImageMagick";
+            this.btnImageMagick.Size = new System.Drawing.Size(83, 25);
+            this.btnImageMagick.TabIndex = 17;
+            this.btnImageMagick.Text = "ImageMagick";
+            this.btnImageMagick.UseVisualStyleBackColor = true;
+            this.btnImageMagick.Click += new System.EventHandler(this.Button_Click);
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(761, 696);
+            this.Controls.Add(this.btnImageMagick);
             this.Controls.Add(this.lblProcessing);
             this.Controls.Add(this.btnAtalasoft);
             this.Controls.Add(this.lblTargetFilePath);
@@ -236,6 +249,7 @@ namespace ImageProcessor
         }
 
 
+        #region Event handlers
         private void MainForm_Load(object sender, EventArgs e)
         {
             HideTextAndIcon();
@@ -246,40 +260,30 @@ namespace ImageProcessor
             HideTextAndIcon();            
         }
 
-        private void btnLeadtools_Click(object sender, EventArgs e)
+        private void Button_Click(object sender, EventArgs e)
         {
+            var whichButton = ((Button)sender).Name.ToLower();
+
             ShowTextAndIcon();
 
             var testHelper = SetupTestHelper();
 
-            testHelper.TestLeadTools();
-
-            HideTextAndIcon();
-
-            DisplayResults(testHelper);
-        }
-
-        private void btnDotnet_Click(object sender, EventArgs e)
-        {
-            ShowTextAndIcon();
-
-            var testHelper = SetupTestHelper();
-
-            testHelper.TestDotnet();
-
-            HideTextAndIcon();
-
-            DisplayResults(testHelper);
-        }
-
-
-        private void btnAtalasoft_Click(object sender, EventArgs e)
-        {
-            ShowTextAndIcon();
-
-            var testHelper = SetupTestHelper();
-
-            testHelper.TestAtalasoft();
+            if(whichButton == "btnleadtools")
+            {
+                testHelper.StartTest(LibraryInUse.WhichLibrary.Leadtools);
+            }
+            else if (whichButton == "btndotnet")
+            {
+                testHelper.StartTest(LibraryInUse.WhichLibrary.Dotnet);
+            }
+            else if (whichButton == "btnatalasoft")
+            {
+                testHelper.StartTest(LibraryInUse.WhichLibrary.Atalasoft);
+            }            
+            else if (whichButton == "btnimagemagick")
+            {
+                testHelper.StartTest(LibraryInUse.WhichLibrary.ImageMagick);
+            }
 
             HideTextAndIcon();
 
@@ -287,20 +291,31 @@ namespace ImageProcessor
         }
 
        
-        private void btnITextSharp_Click(object sender, EventArgs e)
+        private void btnSelectSourcePath_Click(object sender, EventArgs e)
         {
-            ShowTextAndIcon();
-
-            var testHelper = SetupTestHelper();
-
-            testHelper.TestITextSharp();
-
-            HideTextAndIcon();
-
-            DisplayResults(testHelper);
+            var folderPathDialog = new FolderBrowserDialog();
+            folderPathDialog.SelectedPath = @"c:\testImage\source\";
+            var result = STAShowDialog(folderPathDialog);
+            if (result == DialogResult.OK)
+            {
+                vm.SourceFilePath = folderPathDialog.SelectedPath + @"\";
+                lblSourceFilePath.Text = vm.SourceFilePath;
+            }
         }
 
+        private void btnSelectTargetPath_Click(object sender, EventArgs e)
+        {
+            var folderPathDialog = new FolderBrowserDialog();
+            folderPathDialog.SelectedPath = @"c:\testImage\target\";
+            var result = STAShowDialog(folderPathDialog);
 
+            if (result == DialogResult.OK)
+            {
+                vm.TargetFilePath = folderPathDialog.SelectedPath + @"\";
+                lblTargetFilePath.Text = vm.TargetFilePath;
+            }
+        }
+        #endregion
 
         #region private methods
         private TestHelper SetupTestHelper()
@@ -349,31 +364,7 @@ namespace ImageProcessor
 
         #endregion
 
-        private void btnSelectSourcePath_Click(object sender, EventArgs e)
-        {
-            var folderPathDialog = new FolderBrowserDialog();
-            folderPathDialog.SelectedPath = @"c:\testImage\source\";
-            var result = STAShowDialog(folderPathDialog);
-            if (result == DialogResult.OK)
-            {
-                vm.SourceFilePath = folderPathDialog.SelectedPath + @"\";
-                lblSourceFilePath.Text = vm.SourceFilePath;
-            }
-        }
-
-        private void btnSelectTargetPath_Click(object sender, EventArgs e)
-        {
-            var folderPathDialog = new FolderBrowserDialog();
-            folderPathDialog.SelectedPath = @"c:\testImage\target\";
-            var result = STAShowDialog(folderPathDialog);
-  
-            if (result == DialogResult.OK)
-            {
-                vm.TargetFilePath = folderPathDialog.SelectedPath+@"\";
-                lblTargetFilePath.Text = vm.TargetFilePath;
-            }
-        }
-
+       
         #region Thread safe dialog
         public class DialogState
         {
@@ -397,6 +388,8 @@ namespace ImageProcessor
             return state.result;
         }
         #endregion
+
+        
 
 
 
